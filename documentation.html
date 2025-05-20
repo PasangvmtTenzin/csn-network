@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSN Network with Docker - Project Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            width: 85%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        section {
+            padding: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px #ccc dotted;
+        }
+        section:last-child {
+            border-bottom: none;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #555;
+        }
+        pre {
+            background-color: #eee;
+            border: 1px solid #ddd;
+            padding: 15px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f9f9f9;
+            padding: 2px 4px;
+            border-radius: 3px;
+            border: 1px solid #eee;
+        }
+        .note {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 6px solid #ffc107;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 6px solid #28a745;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .file-path {
+            font-weight: bold;
+            color: #006621;
+            margin-top:10px;
+            margin-bottom:5px;
+            display: block;
+        }
+        .toc {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .toc h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .toc ul {
+            padding-left: 20px;
+            list-style: none;
+        }
+        .toc li {
+            margin-bottom: 5px;
+        }
+        .toc a {
+            color: #0056b3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+            color: #003d80;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CSN Network with Docker - Project Documentation</h1>
+    </header>
+
+    <div class="container">
+        <nav class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#introduction">1. Introduction</a></li>
+                <li><a href="#prerequisites">2. Prerequisites</a></li>
+                <li><a href="#project-structure">3. Project File Structure</a></li>
+                <li><a href="#services-overview">4. Services Overview</a>
+                    <ul>
+                        <li><a href="#dns-server-toc">4.1 DNS Server (dns.csn.local)</a></li>
+                        <li><a href="#web-server-toc">4.2 Web Server (web.csn.local)</a></li>
+                        <li><a href="#db-server-toc">4.3 Database Server (db.csn.local)</a></li>
+                        <li><a href="#client-machine-toc">4.4 Client Machine (client.csn.local)</a></li>
+                    </ul>
+                </li>
+                <li><a href="#docker-compose-file">5. The Conductor: <code>docker-compose.yml</code></a></li>
+                <li><a href="#detailed-configurations">6. Detailed Configurations & Files</a>
+                    <ul>
+                        <li><a href="#dns-config">6.1 DNS Server Configuration</a></li>
+                        <li><a href="#web-config">6.2 Web Server Configuration</a></li>
+                        <li><a href="#db-config">6.3 Database Server Configuration</a></li>
+                        <li><a href="#client-config">6.4 Client Machine Configuration</a></li>
+                    </ul>
+                </li>
+                <li><a href="#how-to-run">7. How to Run the Project</a></li>
+                <li><a href="#how-to-test">8. How to Test the Network</a>
+                    <ul>
+                        <li><a href="#testing-from-client-container">8.1 Testing from the Client Container</a></li>
+                        <li><a href="#optional-testing-windows">8.2 Optional: Testing from Windows Host (Using <code>hosts</code> File)</a></li>
+                    </ul>
+                </li>
+                <li><a href="#troubleshooting">9. Troubleshooting Common Issues</a></li>
+                <li><a href="#stopping-cleanup">10. Stopping and Cleaning Up</a></li>
+            </ul>
+        </nav>
+
+        <section id="introduction">
+            <h2>1. Introduction</h2>
+            <p>Welcome to the documentation for the "CSN Network with Docker" project. This project demonstrates how to create a simulated enterprise network environment using Docker and Docker Compose. It includes essential network services like a DNS server, a web server with a database backend, and a client machine for testing connectivity and service access.</p>
+            <p>The goal is to understand how these components interact within a defined network, using FQDNs (Fully Qualified Domain Names) for service discovery, all containerized for easy deployment and management.</p>
+        </section>
+
+        <section id="prerequisites">
+            <h2>2. Prerequisites</h2>
+            <p>Before you begin, ensure you have the following software installed on your computer:</p>
+            <ul>
+                <li><strong>Docker Engine:</strong> The core Docker software. You can download it from <a href="https://www.docker.com/products/docker-desktop" target="_blank">Docker's official website</a> (Docker Desktop includes Docker Engine).</li>
+                <li><strong>Docker Compose:</strong> A tool for defining and running multi-container Docker applications. Docker Desktop for Windows and Mac includes Docker Compose. For Linux, it might be a separate installation.</li>
+            </ul>
+            <p class="note">This project uses specific IP addresses (<code>10.10.10.x</code>). Ensure these do not conflict with your existing local network setup.</p>
+        </section>
+
+        <section id="project-structure">
+            <h2>3. Project File Structure</h2>
+            <p>The project is organized into several directories within your main <code>csn-network</code> folder, each containing files for a specific service:</p>
+            <pre>
+csn-network/  <-- Your main project folder
+├── docker-compose.yml
+├── client/
+│   └── Dockerfile
+├── dns/
+│   ├── Dockerfile
+│   ├── named.conf
+│   ├── named.conf.options
+│   ├── named.conf.local
+│   └── zones/
+│       └── csn.local.db
+├── web/
+│   ├── Dockerfile
+│   └── app/
+│       ├── index.php
+│       ├── style.css
+│       └── db_connect.php
+├── db_init/
+│   └── init.sql
+└── project_documentation.html  <-- This HTML documentation file (example name)
+</pre>
+        </section>
+
+        <section id="services-overview">
+            <h2>4. Services Overview</h2>
+            <p>Our enterprise network consists of the following services, each running in its own Docker container:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service Name (in <code>docker-compose.yml</code>)</th>
+                        <th>Purpose</th>
+                        <th>FQDN</th>
+                        <th>IP Address</th>
+                        <th>Key Software</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>dns_server</code></td>
+                        <td>Resolves domain names to IP addresses for our network.</td>
+                        <td><code>dns.csn.local</code></td>
+                        <td><code>10.10.10.5</code></td>
+                        <td>BIND9</td>
+                    </tr>
+                    <tr>
+                        <td><code>web_server</code></td>
+                        <td>Hosts a web application (Simple Notes App).</td>
+                        <td><code>web.csn.local</code></td>
+                        <td><code>10.10.10.6</code></td>
+                        <td>Apache, PHP</td>
+                    </tr>
+                    <tr>
+                        <td><code>db_server</code></td>
+                        <td>Stores data for the web application.</td>
+                        <td><code>db.csn.local</code></td>
+                        <td><code>10.10.10.7</code></td>
+                        <td>MariaDB (MySQL compatible)</td>
+                    </tr>
+                    <tr>
+                        <td><code>client_machine</code></td>
+                        <td>A simple machine to test network services from within the Docker network.</td>
+                        <td><code>client.csn.local</code></td>
+                        <td><code>10.10.10.8</code></td>
+                        <td>Alpine Linux (with network tools)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 id="dns-server-toc">4.1 DNS Server (dns.csn.local)</h3>
+            <p>The DNS (Domain Name System) server is like the phonebook of our network. When a service wants to talk to <code>web.csn.local</code>, it asks the DNS server, "What's the IP address for <code>web.csn.local</code>?". The DNS server then replies with <code>10.10.10.6</code>.</p>
+            <p>It's also configured to forward requests for external domains (like <code>google.com</code>) to public DNS servers.</p>
+
+            <h3 id="web-server-toc">4.2 Web Server (web.csn.local)</h3>
+            <p>This server hosts a simple web application written in PHP. For this project, it's a "Notes App" where you can add and view notes. This application needs to connect to the database server to store and retrieve the notes.</p>
+            <p>You can access it via <code>http://web.csn.local</code> from a client that is configured to use our DNS server or has a <code>hosts</code> file entry for it.</p>
+
+            <h3 id="db-server-toc">4.3 Database Server (db.csn.local)</h3>
+            <p>The database server (MariaDB) is where the actual data for our Notes App is stored. The web server queries this database to fetch notes or save new ones. The data is made persistent using a Docker volume, so even if you stop and restart the containers, your notes will still be there.</p>
+
+            <h3 id="client-machine-toc">4.4 Client Machine (client.csn.local)</h3>
+            <p>This is a minimal Linux container (Alpine Linux) equipped with networking tools like <code>ping</code>, <code>nslookup</code>, <code>dig</code>, and <code>curl</code>. Its primary purpose is to allow us to test if our DNS server is working correctly and if we can reach the web server using its domain name from *within* our simulated network.</p>
+        </section>
+
+        <section id="docker-compose-file">
+            <h2>5. The Conductor: <code>docker-compose.yml</code></h2>
+            <p>The <code>docker-compose.yml</code> file is the heart of our multi-container setup. It tells Docker Compose:</p>
+            <ul>
+                <li><strong>Which services to build/run:</strong> <code>dns_server</code>, <code>web_server</code>, <code>db_server</code>, <code>client_machine</code>.</li>
+                <li><strong>How to build them:</strong> For services with a <code>Dockerfile</code> (like <code>dns_server</code>, <code>web_server</code>, <code>client_machine</code>), it specifies the build context (e.g., <code>build: ./dns</code>). For others (like <code>db_server</code>), it specifies a pre-built image from Docker Hub (e.g., <code>image: mariadb:10.11</code>).</li>
+                <li><strong>Container names and hostnames:</strong> e.g., <code>container_name: dns_server</code>, <code>hostname: dns.csn.local</code>.</li>
+                <li><strong>Network configuration:</strong>
+                    <ul>
+                        <li>It defines a custom bridge network named <code>enterprise_net</code> with a specific subnet (<code>10.10.10.0/24</code>).</li>
+                        <li>It assigns static IP addresses to each container within this network (e.g., <code>ipv4_address: 10.10.10.5</code> for the DNS server).</li>
+                        <li>It configures each service to use our custom DNS server (<code>10.10.10.5</code>) for name resolution using the <code>dns:</code> directive.</li>
+                    </ul>
+                </li>
+                <li><strong>Port mappings:</strong> e.g., <code>ports: - "53:53/tcp"</code> for the DNS server maps port 53 on your host machine to port 53 inside the DNS container, allowing external access if needed (primarily for testing from the host).</li>
+                <li><strong>Volumes:</strong> For persistent data storage, e.g., <code>db_data:/var/lib/mysql</code> for the database, and for mounting initialization scripts like <code>./db_init:/docker-entrypoint-initdb.d</code>.</li>
+                <li><strong>Environment variables:</strong> e.g., setting the root password and default database for MariaDB.</li>
+                <li><strong>Dependencies:</strong> Using <code>depends_on</code> to specify startup order (e.g., web server might depend on the database and DNS).</li>
+            </ul>
+            <p>Here's the content of <code>docker-compose.yml</code>:</p>
+            <span class="file-path">File: csn-network/docker-compose.yml</span>
+            <pre><code>
+# version: '3.8' # This line is obsolete and can be removed.
+
+services:
+  dns_server:
+    build: ./dns
+    container_name: dns_server
+    hostname: dns.csn.local
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    networks:
+      enterprise_net:
+        ipv4_address: 10.10.10.5
+    dns: # Make the DNS server use itself for its own hostname resolution
+      - 127.0.0.1
+      - 10.10.10.5
+    restart: always
+
+  db_server:
+    image: mariadb:10.11
+    container_name: db_server
+    hostname: db.csn.local
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_secret
+      MYSQL_DATABASE: my_app_db
+    volumes:
+      - db_data:/var/lib/mysql # Uses the named volume 'db_data'
+      - ./db_init:/docker-entrypoint-initdb.d
+    networks:
+      enterprise_net:
+        ipv4_address: 10.10.10.7
+    dns: # All services should use our custom DNS server
+      - 10.10.10.5
+    restart: always
+
+  web_server:
+    build: ./web
+    container_name: web_server
+    hostname: web.csn.local
+    ports:
+      - "80:80" # Host port 80 to container port 80
+    networks:
+      enterprise_net:
+        ipv4_address: 10.10.10.6
+    depends_on:
+      - db_server
+      - dns_server
+    dns: # All services should use our custom DNS server
+      - 10.10.10.5
+    restart: always
+
+  client_machine:
+    build: ./client
+    container_name: client_machine
+    hostname: client.csn.local
+    networks:
+      enterprise_net:
+        ipv4_address: 10.10.10.8
+    dns:
+      - 10.10.10.5
+    tty: true        # Keeps STDIN open for interactive use
+    stdin_open: true # Keeps STDIN open
+    depends_on:
+      - dns_server
+      - web_server
+    restart: "no"
+
+networks:
+  enterprise_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+          gateway: 10.10.10.1 # Docker manages this gateway
+
+volumes:
+  db_data: # Defines a named volume for database persistence
+</code></pre>
+            <p class="note">The <code>version: '3.8'</code> line at the top is often optional in newer Docker Compose versions and might give a warning. You can usually remove it, as shown commented out above.</p>
+        </section>
+
+        <section id="detailed-configurations">
+            <h2>6. Detailed Configurations & Files</h2>
+
+            <h3 id="dns-config">6.1 DNS Server Configuration</h3>
+            <p>The DNS server uses BIND9. Its configuration is split into several files located in the <code>csn-network/dns/</code> directory.</p>
+            <span class="file-path">File: csn-network/dns/Dockerfile</span>
+            <pre><code>
+FROM ubuntu:22.04
+
+RUN apt-get update && \
+    apt-get install -y bind9 bind9utils dnsutils vim && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /etc/bind/zones
+RUN mkdir -p /var/cache/bind
+RUN mkdir -p /var/run/named && chown bind:bind /var/run/named
+
+COPY named.conf /etc/bind/named.conf
+COPY named.conf.options /etc/bind/named.conf.options
+COPY named.conf.local /etc/bind/named.conf.local
+COPY zones/csn.local.db /etc/bind/zones/csn.local.db
+
+RUN named-checkconf /etc/bind/named.conf || exit 1
+RUN named-checkzone csn.local /etc/bind/zones/csn.local.db || exit 1
+
+RUN chown -R bind:bind /etc/bind
+RUN chown -R bind:bind /var/cache/bind
+
+EXPOSE 53/tcp
+EXPOSE 53/udp
+
+CMD ["/usr/sbin/named", "-g", "-c", "/etc/bind/named.conf", "-u", "bind"]
+</code></pre>
+
+            <span class="file-path">File: csn-network/dns/named.conf</span>
+            <pre><code>
+include "/etc/bind/named.conf.options";
+include "/etc/bind/named.conf.local";
+</code></pre>
+
+            <span class="file-path">File: csn-network/dns/named.conf.options</span>
+            <pre><code>
+options {
+    directory "/var/cache/bind";
+    forwarders {
+        8.8.8.8; // Google's public DNS
+        8.8.4.4; // Google's public DNS
+    };
+    forward only;
+    dnssec-validation auto;
+    listen-on { 10.10.10.5; 127.0.0.1; };
+    allow-query { any; };
+    recursion yes;
+};
+</code></pre>
+
+            <span class="file-path">File: csn-network/dns/named.conf.local</span>
+            <pre><code>
+zone "csn.local" {
+    type master;
+    file "/etc/bind/zones/csn.local.db";
+    allow-update { none; };
+};
+</code></pre>
+
+            <span class="file-path">File: csn-network/dns/zones/csn.local.db</span>
+            <pre><code>
+$TTL 604800
+@   IN  SOA dns.csn.local. admin.csn.local. (
+            2024041502  ; Serial (IMPORTANT: Increment if you change this file!)
+            604800      ; Refresh
+            86400       ; Retry
+            2419200     ; Expire
+            604800      ; Negative Cache TTL
+            )
+@       IN  NS  dns.csn.local.
+
+dns     IN  A   10.10.10.5
+web     IN  A   10.10.10.6
+db      IN  A   10.10.10.7
+client  IN  A   10.10.10.8
+</code></pre>
+
+            <h3 id="web-config">6.2 Web Server Configuration</h3>
+            <p>Located in <code>csn-network/web/</code>.</p>
+            <span class="file-path">File: csn-network/web/Dockerfile</span>
+            <pre><code>
+FROM php:8.2-apache
+
+RUN docker-php-ext-install pdo pdo_mysql mysqli
+RUN a2enmod rewrite
+
+COPY ./app/ /var/www/html/
+RUN chown -R www-data:www-data /var/www/html/
+
+EXPOSE 80
+</code></pre>
+
+            <span class="file-path">File: csn-network/web/app/db_connect.php</span>
+            <pre><code>
+<?php
+$db_host = 'db.csn.local';
+$db_name = 'my_app_db';
+$db_user = 'root';
+$db_pass = 'root_password_secret';
+
+try {
+    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage() . " (Host: $db_host)");
+}
+?>
+</code></pre>
+            <p><span class="file-path">File: csn-network/web/app/index.php</span> and <span class="file-path">File: csn-network/web/app/style.css</span> contain the application code. Their full content is lengthy but should be included in your project as provided in the complete project setup. They create a simple web-based "Notes" application.</p>
+
+            <h3 id="db-config">6.3 Database Server Configuration</h3>
+            <p>Initialization script located in <code>csn-network/db_init/</code>.</p>
+            <span class="file-path">File: csn-network/db_init/init.sql</span>
+            <pre><code>
+CREATE DATABASE IF NOT EXISTS my_app_db;
+USE my_app_db;
+
+CREATE TABLE IF NOT EXISTS notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+</code></pre>
+
+            <h3 id="client-config">6.4 Client Machine Configuration</h3>
+            <p>Located in <code>csn-network/client/</code>.</p>
+            <span class="file-path">File: csn-network/client/Dockerfile</span>
+            <pre><code>
+FROM alpine:latest
+
+RUN apk update && \
+    apk add --no-cache bind-tools curl iputils net-tools nano
+
+CMD ["tail", "-f", "/dev/null"]
+</code></pre>
+        </section>
+
+        <section id="how-to-run">
+            <h2>7. How to Run the Project</h2>
+            <p>Follow these steps to get the entire network up and running:</p>
+            <ol>
+                <li><strong>Open a terminal or command prompt.</strong></li>
+                <li><strong>Navigate to the project's root directory</strong> (the <code>csn-network</code> folder where your <code>docker-compose.yml</code> file is located).
+                    <pre><code>cd path/to/your/csn-network</code></pre>
+                </li>
+                <li><strong>Build and start all services in detached mode:</strong>
+                    <pre><code>docker-compose up --build -d</code></pre>
+                </li>
+                <li><strong>Check the status of your containers:</strong>
+                    <pre><code>docker-compose ps</code></pre>
+                    You should see all four services listed with a state of <code>Up</code> (or <code>running</code>).
+                </li>
+            </ol>
+        </section>
+
+        <section id="how-to-test">
+            <h2>8. How to Test the Network</h2>
+
+            <h3 id="testing-from-client-container">8.1 Testing from the Client Container (<code>client.csn.local</code> - 10.10.10.8)</h3>
+            <p>This is the primary method for testing internal network functionality.</p>
+            <ol>
+                <li><strong>Access the client container's shell:</strong>
+                    <pre><code>docker-compose exec client_machine sh</code></pre>
+                    You are now inside the shell of the <code>client_machine</code> container (you'll see a prompt like <code>/ #</code>).
+                </li>
+                <li><strong>Verify IP and DNS Configuration (inside client container):</strong>
+                    <ul>
+                        <li>Check IP:
+                            <pre><code>ip addr show eth0</code></pre>
+                            <em>Expected output should include: <code>inet 10.10.10.8/24</code></em>
+                        </li>
+                        <li>Check DNS resolver configuration:
+                            <pre><code>cat /etc/resolv.conf</code></pre>
+                            <em>Expected output: <code>nameserver 127.0.0.11</code> (Docker's internal resolver, which forwards to <code>10.10.10.5</code>).</em>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong>Test DNS Resolution (inside client container):</strong>
+                    <ul>
+                        <li>Using <code>nslookup</code>:
+                            <pre><code>nslookup web.csn.local</code></pre>
+                            <em>Expected: Server <code>127.0.0.11</code> (or <code>10.10.10.5</code>), resolves <code>web.csn.local</code> to Address: <code>10.10.10.6</code>.</em>
+                            <pre><code>nslookup db.csn.local</code></pre>
+                            <em>Expected: Resolves to Address: <code>10.10.10.7</code>.</em>
+                            <pre><code>nslookup dns.csn.local</code></pre>
+                            <em>Expected: Resolves to Address: <code>10.10.10.5</code>.</em>
+                            <pre><code>nslookup client.csn.local</code></pre>
+                            <em>Expected: Resolves to Address: <code>10.10.10.8</code>.</em>
+                            <pre><code>nslookup google.com</code></pre>
+                            <em>Expected: Resolves to public Google IP addresses (tests forwarding).</em>
+                        </li>
+                        <li>Using <code>dig</code> (provides more detail):
+                            <pre><code>dig web.csn.local</code></pre>
+                            <em>Look for the <code>ANSWER SECTION</code> showing <code>web.csn.local. A 10.10.10.6</code>.</em>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong>Test Web Server Access (inside client container):</strong>
+                    <ul>
+                        <li>Fetch the webpage content:
+                            <pre><code>curl http://web.csn.local</code></pre>
+                            <em>Expected: HTML output of the Notes application.</em>
+                        </li>
+                        <li>Check HTTP headers:
+                            <pre><code>curl -I http://web.csn.local</code></pre>
+                            <em>Expected: <code>HTTP/1.1 200 OK</code> and other headers.</em>
+                        </li>
+                        <li>Test with direct IP (bypasses DNS for this step):
+                            <pre><code>curl http://10.10.10.6</code></pre>
+                             <em>Expected: Same HTML output.</em>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong>Test Network Connectivity (Ping - inside client container):</strong>
+                    <pre><code>ping -c 3 dns.csn.local
+ping -c 3 web.csn.local
+ping -c 3 db.csn.local
+</code></pre>
+                    <em>Expected: Successful ping replies from each server.</em>
+                </li>
+                <li><strong>Exit the client container's shell:</strong>
+                    <pre><code>exit</code></pre>
+                </li>
+            </ol>
+            <p class="success">If all these tests pass, your internal Docker network and services are working as expected!</p>
+
+            <h3 id="optional-testing-windows">8.2 Optional: Testing from Your Windows Host Machine (Using <code>hosts</code> File)</h3>
+            <p>An alternative to changing your network adapter's DNS settings for testing <code>http://web.csn.local</code> from your Windows host's browser is to modify the Windows <code>hosts</code> file. This method locally maps hostnames to IP addresses, bypassing your configured DNS servers for those specific entries.</p>
+            <div class="warning">
+                <strong>Important:</strong> You need administrator privileges to edit the <code>hosts</code> file. Remember to remove or comment out these entries after testing to avoid potential conflicts with future network access or if the IP addresses of your services change.
+            </div>
+            <ol>
+                <li><strong>Open Notepad as Administrator:</strong>
+                    <ul>
+                        <li>Search for "Notepad" in the Windows Start Menu.</li>
+                        <li>Right-click on "Notepad" and select "Run as administrator."</li>
+                    </ul>
+                </li>
+                <li><strong>Open the <code>hosts</code> File:</strong>
+                    <ul>
+                        <li>In Notepad, go to "File" -> "Open...".</li>
+                        <li>Navigate to the directory: <code>C:\Windows\System32\drivers\etc\</code></li>
+                        <li>In the "File name:" dropdown (bottom right of the open dialog), change "Text Documents (*.txt)" to "All Files (*.*)".</li>
+                        <li>Select the file named <code>hosts</code> and click "Open".</li>
+                    </ul>
+                </li>
+                <li><strong>Add Host Entries:</strong>
+                    <p>Scroll to the bottom of the file and add the following lines. Ensure there is at least one space or tab between the IP address and the hostname.</p>
+                    <pre><code>
+# CSN Docker Project Mappings
+10.10.10.5  dns.csn.local
+10.10.10.6  web.csn.local
+10.10.10.7  db.csn.local    # Optional, primarily for web server to resolve if needed from host
+10.10.10.8  client.csn.local  # Optional, for consistency if you try to ping it from host
+</code></pre>
+                    <p class="note">The primary entry needed for accessing the web application is <code>10.10.10.6 web.csn.local</code>. The others are included for completeness or potential direct testing from the host.</p>
+                </li>
+                <li><strong>Save and Close the <code>hosts</code> File:</strong>
+                    <ul>
+                        <li>In Notepad, go to "File" -> "Save".</li>
+                        <li>Close Notepad.</li>
+                    </ul>
+                </li>
+                <li><strong>Flush Windows DNS Cache (Recommended):</strong>
+                    <p>Open Command Prompt (<code>cmd</code>) and run:</p>
+                    <pre><code>ipconfig /flushdns</code></pre>
+                    <p>This helps ensure Windows immediately recognizes the changes in the <code>hosts</code> file.</p>
+                </li>
+                <li><strong>Test DNS Resolution from Windows Command Prompt:</strong>
+                    <p>Even though you used the <code>hosts</code> file, <code>nslookup</code> might still query your configured DNS server by default. To specifically test the <code>hosts</code> file effect, you can try pinging or accessing the service. However, a `ping` will show if the name resolves correctly according to the system's name resolution order (which prioritizes <code>hosts</code> file):</p>
+                    <pre><code>ping web.csn.local</code></pre>
+                    <p><em>Expected Output:</em> You should see replies from <code>10.10.10.6</code>.</p>
+                    <p>If you try <code>nslookup web.csn.local</code>, it might still query your *actual* DNS server (e.g., your router) which won't know <code>web.csn.local</code> unless that DNS server is <code>10.10.10.5</code>. The <code>hosts</code> file primarily affects applications making direct system calls for name resolution (like browsers and ping).</p>
+                </li>
+                <li><strong>Access Web Application in Browser:</strong>
+                    <p>Open your web browser (Edge, Chrome, Firefox) and navigate to:</p>
+                    <pre><code>http://web.csn.local</code></pre>
+                    <p>You should see the "CSN Notes App". Your browser will use the <code>hosts</code> file entry to find <code>10.10.10.6</code>.</p>
+                </li>
+                <li><strong>Important: Revert Changes After Testing:</strong>
+                    <p>When you are finished testing, repeat steps 1 and 2 to open the <code>hosts</code> file as administrator. Then, either delete the lines you added for the CSN Docker Project or comment them out by placing a <code>#</code> symbol at the beginning of each line. Save the file and run <code>ipconfig /flushdns</code> again.</p>
+                    <pre><code>
+# CSN Docker Project Mappings (Commented out)
+# 10.10.10.5  dns.csn.local
+# 10.10.10.6  web.csn.local
+# 10.10.10.7  db.csn.local
+# 10.10.10.8  client.csn.local
+</code></pre>
+                </li>
+            </ol>
+
+        </section>
+
+        <section id="troubleshooting">
+            <h2>9. Troubleshooting Common Issues</h2>
+            <ul>
+                <li><strong><code>DNS_PROBE_FINISHED_NXDOMAIN</code> in browser (on Windows host):</strong>
+                    <ul>
+                        <li>If using the <code>hosts</code> file method: Ensure you saved the <code>hosts</code> file correctly with administrator privileges, that the entries are correct (IP then hostname, space separated), and that you flushed the DNS cache (<code>ipconfig /flushdns</code>). Try restarting your browser.</li>
+                        <li>If you had previously tried the network adapter DNS change: Ensure it's either reverted or correctly pointing to <code>10.10.10.5</code>. Mixing methods can be confusing.</li>
+                        <li>Verify the <code>dns_server</code> container is running: <code>docker-compose ps</code>.</li>
+                        <li>Check <code>dns_server</code> logs for errors: <code>docker-compose logs dns_server</code>.</li>
+                        <li>Ensure the <code>web.csn.local</code> A record exists and is correct in <code>csn-network/dns/zones/csn.local.db</code> and the serial number was incremented after any changes.</li>
+                    </ul>
+                </li>
+                <li><strong>Cannot connect to database / "Database connection failed" on web page:</strong>
+                    <ul>
+                        <li>Verify <code>db_server</code> container is running: <code>docker-compose ps</code>.</li>
+                        <li>Check <code>db_server</code> logs: <code>docker-compose logs db_server</code>. Look for initialization errors or connection issues.</li>
+                        <li>Check <code>web_server</code> logs: <code>docker-compose logs web_server</code>. This might show more specific PHP errors related to the database.</li>
+                        <li>Ensure the hostname <code>db.csn.local</code> is correctly used in <code>csn-network/web/app/db_connect.php</code>.</li>
+                        <li>Verify that the database credentials (user, password, database name) in <code>db_connect.php</code> match those defined for <code>MYSQL_ROOT_PASSWORD</code> and <code>MYSQL_DATABASE</code> in <code>docker-compose.yml</code> for the <code>db_server</code>.</li>
+                        <li>Test DNS resolution for <code>db.csn.local</code> from within the <code>web_server</code> container:
+                            <pre><code>docker-compose exec web_server nslookup db.csn.local</code></pre>
+                            <em>It should resolve to <code>10.10.10.7</code>.</em>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong>Service fails to start / errors in <code>docker-compose logs <service_name></code>:</strong>
+                    <ul>
+                        <li>Carefully read the log messages for the specific service that's failing.</li>
+                        <li>For BIND9 (<code>dns_server</code>), common issues are syntax errors in config files or permission problems. Validate config inside the DNS container:
+                            <pre><code>docker-compose exec dns_server named-checkconf /etc/bind/named.conf
+docker-compose exec dns_server named-checkzone csn.local /etc/bind/zones/csn.local.db
+</code></pre>
+                            <em>These commands should output nothing if the configuration is valid.</em>
+                        </li>
+                        <li>For MariaDB (<code>db_server</code>), check if the <code>csn-network/db_init/init.sql</code> script has SQL syntax errors. The logs will usually indicate this.</li>
+                    </ul>
+                </li>
+                <li><strong>Changes to BIND zone file (<code>csn-network/dns/zones/csn.local.db</code>) not taking effect:</strong>
+                    <ul>
+                        <li><strong>Crucially, you MUST increment the serial number</strong> in the SOA record within <code>csn.local.db</code> (e.g., from <code>2024041502</code> to <code>2024041503</code>). BIND uses this to detect changes.</li>
+                        <li>Restart the DNS server container for changes to be reloaded: <code>docker-compose restart dns_server</code>.</li>
+                    </ul>
+                </li>
+                 <li><strong>HTML from `curl http://web.csn.local` is garbled or incomplete:</strong>
+                    <ul>
+                        <li>Check your <code>web/app/index.php</code> for any HTML syntax errors, like unclosed tags (e.g., missing <code></li></code> or <code></ul></code>). Validate your HTML if possible.</li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+        <section id="stopping-cleanup">
+            <h2>10. Stopping and Cleaning Up</h2>
+            <p>When you're finished with the project, you can stop and remove the containers and associated resources.</p>
+            <ol>
+                <li><strong>Stop and remove all containers, networks defined in <code>docker-compose.yml</code>:</strong>
+                    <p>(Run this from the <code>csn-network</code> directory)</p>
+                    <pre><code>docker-compose down</code></pre>
+                </li>
+                <li><strong>Remove the persistent database volume (optional):</strong>
+                    <p>If you want to completely clear the database data (e.g., to start fresh), you need to remove the named volume. First, find its name (it usually gets prefixed with your project directory name).</p>
+                    <pre><code>docker volume ls</code></pre>
+                    <p>Look for a volume like <code>csn-network_db_data</code>. Then remove it:</p>
+                    <pre><code>docker volume rm csn-network_db_data</code></pre>
+                    <div class="warning"><strong>Caution:</strong> This will delete all data stored in your database.</div>
+                </li>
+                <li><strong>Revert Windows <code>hosts</code> File Changes (if modified):</strong>
+                    <p>If you modified your Windows <code>hosts</code> file (<code>C:\Windows\System32\drivers\etc\hosts</code>) for testing, remember to open it as an administrator and remove or comment out the entries you added for <code>dns.csn.local</code>, <code>web.csn.local</code>, etc. Save the file and run <code>ipconfig /flushdns</code>.</p>
+                </li>
+            </ol>
+        </section>
+
+        <footer>
+            <p style="text-align:center; margin-top:30px; border-top:1px solid #ccc; padding-top:15px;">
+                CSN Network with Docker - Project Documentation
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
