@@ -52,14 +52,13 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSN Notes App - web.csn.local</title>
+    <title>CSN Notes App</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <h1>CSN Enterprise Notes</h1>
-        <p>Welcome to <strong>web.csn.local</strong>. Hostname: <?php echo gethostname(); ?></p>
-
+        <p>Welcome to the CSN Notes App. Here you can add, view, and delete notes.</p>
         <?php if ($message): ?>
             <p class="message success"><?php echo htmlspecialchars($message); ?></p>
         <?php endif; ?>
