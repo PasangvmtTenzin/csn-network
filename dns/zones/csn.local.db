@@ -1,0 +1,20 @@
+$TTL 604800 ; 1 week
+@   IN  SOA dns.csn.local. admin.csn.local. (
+            2024041502  ; Serial (YYYYMMDDNN format - INCREMENTED)
+            604800      ; Refresh (1 week)
+            86400       ; Retry (1 day)
+            2419200     ; Expire (4 weeks)
+            604800      ; Negative Cache TTL (1 week)
+            )
+
+; Name Server Information
+@       IN  NS  dns.csn.local.
+
+; A Records for hosts in csn.local domain
+dns     IN  A   10.10.10.5
+web     IN  A   10.10.10.6
+db      IN  A   10.10.10.7
+client  IN  A   10.10.10.8
+
+; CNAMEs (optional, for aliases if needed)
+; www     IN  CNAME   web.csn.local.

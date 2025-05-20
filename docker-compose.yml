@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  dns_server:
+    build: ./dns
+    container_name: dns_server
+    hostname: dns.csn.local
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    networks:
+      enterprise_net:
+        ipv4_address: 10.10.10.5
+    dns: # Make the DNS server use itself for its own hostname resolution
+      - 127.0.0.1
+      - 10.10.10.5
+    restart: always
+
+  db_server:
+    image: mariadb:10.11
+    container_name: db_server
+    hostname: db.csn.local
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_secret # IMPORTANT: Use a strong password in a real scenario
+      MYSQL_DATABASE: my_app_db
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db_init:/docker-entrypoint-initdb.d
+    networks:
+      enterprise_net:
+        ipv4_address: 10.10.10.7
+    dns: # All services should use our custom DNS server
+      - 10.10.10.5
+    restart: always
+
+  web_server:
+    build: ./web
+    container_name: web_server
+    hostname: web.csn.local
+    ports:
+      - "80:80" # Host port 80 to container port 80
+    networks:
+      enterprise_net:
+        ipv4_address: 10.10.10.6
+    depends_on:
+      - db_server
+      - dns_server
+    dns: # All services should use our custom DNS server
+      - 10.10.10.5
+    restart: always
+
+  client_machine: # <-- NEW CLIENT SERVICE
+    build: ./client
+    container_name: client_machine
+    hostname: client.csn.local # Giving it a hostname for consistency
+    networks:
+      enterprise_net:
+        ipv4_address: 10.10.10.8
+    dns:
+      - 10.10.10.5 # Crucial: Use our custom DNS server
+    tty: true        # Keeps STDIN open for interactive use
+    stdin_open: true # Keeps STDIN open
+    depends_on:      # Wait for DNS and Web to be somewhat ready
+      - dns_server
+      - web_server
+    restart: "no"    # Client machine doesn't usually need to auto-restart
+
+networks:
+  enterprise_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+          gateway: 10.10.10.1
+
+volumes:
+  db_data:
