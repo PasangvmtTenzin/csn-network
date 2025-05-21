@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS notes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- You can add some initial data if you like
+-- We can add some initial data if you like
 -- INSERT INTO notes (title, content) VALUES ('My First Note', 'This is a test note for the application.');
 -- INSERT INTO notes (title, content) VALUES ('Docker Project', 'Remember to document everything!');
 
